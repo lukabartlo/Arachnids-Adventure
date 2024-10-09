@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Player : MonoBehaviour
+public class Sc_Player : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
 
