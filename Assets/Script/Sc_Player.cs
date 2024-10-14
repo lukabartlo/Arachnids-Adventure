@@ -7,6 +7,7 @@ public class Sc_Player : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
 
+    private Sc_Spiders _spidersOverlapCircle;
     private bool _isDragged;
     private GameObject _spiders;
 
@@ -27,23 +28,27 @@ public class Sc_Player : MonoBehaviour
 
     public void LeftClick(InputAction.CallbackContext ctxt)
     {
-        RaycastHit2D hit = Physics2D.Raycast(_mainCamera.ScreenToWorldPoint(Input.mousePosition),Vector2.zero);
         if (ctxt.performed)
         {
-            if (hit.collider == null)
+            RaycastHit2D hit = Physics2D.Raycast(_mainCamera.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+
+            if (hit.collider == null || hit.collider.gameObject.layer != 6)
             {
                 return;
             }
 
-            if (hit.collider.gameObject.layer == 6)
-            {
-                _spiders = hit.collider.gameObject;
-                _isDragged = true;
-            }
+            _spiders = hit.collider.gameObject;
+
+            if (_spiders.GetComponent<Sc_Spiders>().isPlaced)
+                return;
+
+            _isDragged = true;
+            _spiders.GetComponent<Sc_Spiders>().hasBeenClicked = true;
         }
 
-        else if (ctxt.canceled)
+        else if (ctxt.canceled && _spiders != null)
         {
+            _spiders.GetComponent<Sc_Spiders>().Detect_Nearby_Nests();
             _spiders = null;
             _isDragged = false;
         }

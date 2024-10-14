@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Sc_Nests : MonoBehaviour
+public class Sc_Webs : MonoBehaviour
 {
-    public List<GameObject> nestList = new List<GameObject>();
+    public List<GameObject> webList = new List<GameObject>();
 
     void Start()
     {
