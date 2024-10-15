@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
@@ -7,6 +8,7 @@ using static UnityEngine.GraphicsBuffer;
 public class Sc_Spiders : MonoBehaviour
 {
     [SerializeField] private GameObject _nestOrigin;
+    [SerializeField] private GameObject _webs;
     [SerializeField] private LayerMask _nestLayer;
 
     private float _speed = 5.0f;
@@ -31,6 +33,11 @@ public class Sc_Spiders : MonoBehaviour
         if (this.gameObject.transform.position == _nestOrigin.transform.position)
         {
             Check_Available_Nests();
+        }
+
+        foreach (GameObject nest in GetComponent<Sc_Nests>().nestList.ToList())
+        {
+            SpawnWeb(gameObject, nest);
         }
     }
 
@@ -69,7 +76,16 @@ public class Sc_Spiders : MonoBehaviour
                 joints.connectedBody = hitcollider.GetComponent<Rigidbody2D>();
                 joints.autoConfigureDistance = false;
                 joints.frequency = 5.0f;
+
+                SpawnWeb(gameObject, hitcollider.gameObject);
             }
         }
+    }
+
+    public void SpawnWeb(GameObject start_Pos, GameObject end_Pos)
+    {
+        GameObject new_Webs = Instantiate(_webs);
+        new_Webs.GetComponent<Sc_Webs>().startPos = start_Pos.transform;
+        new_Webs.GetComponent<Sc_Webs>().endPos = end_Pos.transform;
     }
 }
