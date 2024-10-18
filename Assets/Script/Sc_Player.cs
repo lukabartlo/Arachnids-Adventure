@@ -1,20 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Sc_Player : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
+    [SerializeField] private Sc_ButtonManager _buttonManager;
 
     private Sc_Spiders _spidersOverlapCircle;
     private bool _isDragged;
     private GameObject _spiders;
-
-    void Start()
-    {
-        
-    }
 
     void Update()
     {
@@ -42,6 +36,8 @@ public class Sc_Player : MonoBehaviour
             if (_spiders.GetComponent<Sc_Spiders>().isPlaced)
                 return;
 
+            _spiders.GetComponent<CircleCollider2D>().enabled = false;
+
             _isDragged = true;
             _spiders.GetComponent<Sc_Spiders>().hasBeenClicked = true;
         }
@@ -49,8 +45,17 @@ public class Sc_Player : MonoBehaviour
         else if (ctxt.canceled && _spiders != null)
         {
             _spiders.GetComponent<Sc_Spiders>().Detect_Nearby_Nests();
+            _spiders.GetComponent<CircleCollider2D>().enabled = true;
             _spiders = null;
             _isDragged = false;
+        }
+    }
+
+    public void Escape(InputAction.CallbackContext ctxt) 
+    {
+        if (ctxt.performed)
+        {
+            _buttonManager.GetComponent<Sc_ButtonManager>().OpenPauseMenu();
         }
     }
 }

@@ -140,6 +140,12 @@ MonoBehaviour:
     m_Bits: 128
   hasBeenClicked: 0
   isPlaced: 0
+  _spiderExcludeLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _nestExcludeLayerMask:
+    serializedVersion: 2
+    m_Bits: 192
 --- !u!114 &5865517147257210210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,3 +161,4 @@ MonoBehaviour:
   _webs: {fileID: 3212022184350027327, guid: 63c07213bfc98634f9fb3c484bc52e22, type: 3}
   defaultNests: 0
   nestList: []
+  webList: []

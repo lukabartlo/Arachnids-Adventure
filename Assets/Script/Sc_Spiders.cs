@@ -15,9 +15,13 @@ public class Sc_Spiders : MonoBehaviour
     public bool isPlaced = false;
     private bool isLinked = false;
 
+    [SerializeField] private LayerMask _spiderExcludeLayerMask;
+    [SerializeField] private LayerMask _nestExcludeLayerMask;
+
     private void Start()
     {
         _nestComp = GetComponent<Sc_Nests>();
+        GetComponent<CircleCollider2D>().excludeLayers = _spiderExcludeLayerMask;
     }
 
     void Update()
@@ -30,7 +34,7 @@ public class Sc_Spiders : MonoBehaviour
         if (hasBeenClicked && !isPlaced) 
         {
             Collider2D[] HitCollidersReviewMax = Physics2D.OverlapCircleAll(transform.position, _radiusMax, _nestLayer);
-            Collider2D[] HitCollidersReviewMin = Physics2D.OverlapCircleAll(transform.position, _radiusMin, _nestLayer);
+            Collider2D[] HitCollidersReviewMin = Physics2D.OverlapCircleAll(transform.position, _radiusMin, LayerMask.GetMask("Nests","Walls"));
 
             if (HitCollidersReviewMax.Length >= 2)
             {
@@ -129,6 +133,7 @@ public class Sc_Spiders : MonoBehaviour
                 joints.connectedBody = hitcollider.GetComponent<Rigidbody2D>();
                 joints.autoConfigureDistance = false;
                 joints.frequency = 5.0f;
+                GetComponent<CircleCollider2D>().excludeLayers = _nestExcludeLayerMask;
 
                 if (!CheckIfWebExist(hitcollider.gameObject))
                 {
