@@ -1,28 +1,73 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class Sc_Spiders : MonoBehaviour
 {
     [SerializeField] private GameObject _nestOrigin;
-    [SerializeField] private GameObject _webs;
     [SerializeField] private LayerMask _nestLayer;
 
-    private float _speed = 5.0f;
+    private float _speed = 2.5f;
     private float _radiusMax = 3.0f;
     private float _radiusMin = 1.0f;
+    private Sc_Nests _nestComp;
 
     public bool hasBeenClicked = false;
     public bool isPlaced = false;
+    private bool isLinked = false;
+
+    private void Start()
+    {
+        _nestComp = GetComponent<Sc_Nests>();
+    }
 
     void Update()
     {
         if (!hasBeenClicked)
         {
             Spider_Mouvement();
+        }
+
+        if (hasBeenClicked && !isPlaced) 
+        {
+            Collider2D[] HitCollidersReviewMax = Physics2D.OverlapCircleAll(transform.position, _radiusMax, _nestLayer);
+            Collider2D[] HitCollidersReviewMin = Physics2D.OverlapCircleAll(transform.position, _radiusMin, _nestLayer);
+
+            if (HitCollidersReviewMax.Length >= 2)
+            {
+                foreach (Collider2D hitcolliders in HitCollidersReviewMax)
+                {
+                    if (!CheckIfWebExist(hitcolliders.gameObject))
+                    {
+                        _nestComp.SpawnWeb(gameObject, hitcolliders.gameObject);
+                    }
+                }
+            }
+
+            foreach (GameObject oldWebs in _nestComp.webList.ToList())
+            {
+                isLinked = false;
+
+                foreach (Collider2D hitcolliders in HitCollidersReviewMax)
+                {
+                    if (oldWebs.GetComponent<Sc_Webs>().endPos == hitcolliders.transform)
+                    {
+                        isLinked = true;
+                        break;
+                    }
+                }
+
+                if (!isLinked || HitCollidersReviewMin.Length > 0)
+                {
+                    Destroy(oldWebs);
+                    _nestComp.webList.Remove(oldWebs);
+                }
+            }
+
+            if (_nestComp.webList.Count == 1)
+            {
+                Destroy(_nestComp.webList[0]);
+                _nestComp.webList.Remove(_nestComp.webList[0]);
+            }
         }
 
         if (this.gameObject.transform.position != _nestOrigin.transform.position)
@@ -35,15 +80,16 @@ public class Sc_Spiders : MonoBehaviour
             Check_Available_Nests();
         }
 
-        foreach (GameObject nest in GetComponent<Sc_Nests>().nestList.ToList())
+        foreach (GameObject nest in _nestComp.nestList.ToList())
         {
-            SpawnWeb(gameObject, nest);
+            _nestComp.SpawnWeb(gameObject, nest);
         }
     }
 
     private void Check_Available_Nests()
     {
         _nestOrigin = _nestOrigin.GetComponent<Sc_Nests>().nestList[Random.Range(0, _nestOrigin.GetComponent<Sc_Nests>().nestList.Count)];
+        transform.parent = _nestOrigin.transform;
     }
 
     private void Spider_Mouvement()
@@ -57,10 +103,17 @@ public class Sc_Spiders : MonoBehaviour
         Collider2D[] HitCollidersMax = Physics2D.OverlapCircleAll(transform.position, _radiusMax, _nestLayer);
         Collider2D[] HitCollidersMin = Physics2D.OverlapCircleAll(transform.position, _radiusMin, _nestLayer);
 
+
         if (HitCollidersMax.Length <= 1 || HitCollidersMin.Length > 0)
         {
             transform.position = _nestOrigin.transform.position;
             hasBeenClicked = false;
+
+            foreach (GameObject oldwebs in _nestComp.webList.ToList())
+            {
+                Destroy(oldwebs);
+                _nestComp.webList.Remove(oldwebs);
+            }
         }
 
         else
@@ -70,22 +123,33 @@ public class Sc_Spiders : MonoBehaviour
 
             foreach (Collider2D hitcollider in HitCollidersMax)
             {
-                GetComponent<Sc_Nests>().nestList.Add(hitcollider.gameObject);
+                _nestComp.nestList.Add(hitcollider.gameObject);
                 hitcollider.GetComponent<Sc_Nests>().nestList.Add(gameObject);
                 SpringJoint2D joints = gameObject.AddComponent<SpringJoint2D>();
                 joints.connectedBody = hitcollider.GetComponent<Rigidbody2D>();
                 joints.autoConfigureDistance = false;
                 joints.frequency = 5.0f;
 
-                SpawnWeb(gameObject, hitcollider.gameObject);
+                if (!CheckIfWebExist(hitcollider.gameObject))
+                {
+                    _nestComp.SpawnWeb(gameObject, hitcollider.gameObject);
+                }
             }
+            GetComponent<Rigidbody2D>().freezeRotation = true;
         }
     }
 
-    public void SpawnWeb(GameObject start_Pos, GameObject end_Pos)
+    public bool CheckIfWebExist(GameObject nest)
     {
-        GameObject new_Webs = Instantiate(_webs);
-        new_Webs.GetComponent<Sc_Webs>().startPos = start_Pos.transform;
-        new_Webs.GetComponent<Sc_Webs>().endPos = end_Pos.transform;
+        foreach(GameObject web in _nestComp.webList)
+        {
+
+            if(web.GetComponent<Sc_Webs>().endPos == nest.transform)
+            {
+                return true;
+            }
+
+        }
+        return false;
     }
 }
